@@ -1,0 +1,17 @@
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#080808;color:#eee}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,main{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
+body{height:100dvh;user-select:none;-webkit-user-select:none}
+main{position:relative}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+nav{position:absolute;bottom:max(20px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:6px;border:1px solid #292929;background:#131313eb;border-radius:40px}
+button{width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#929292;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
+button[hidden]{display:none}
+button[aria-pressed=true]{background:#ececec;color:#111}
+button:active{background:#444;color:white}
+button:focus-visible{outline:2px solid white;outline-offset:3px}
+button:disabled{opacity:.25;cursor:default}
+svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.divider{width:1px;height:19px;background:#303030;margin:0 3px}
+@media(max-width:370px){nav{gap:0;padding:4px}.divider{margin:0}button{width:42px}}
+@media(orientation:landscape) and (max-height:600px){nav{left:auto;right:max(12px,env(safe-area-inset-right));bottom:50%;transform:translateY(50%);flex-direction:column}.divider{height:1px;width:19px;margin:3px 0}}

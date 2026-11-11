@@ -18,11 +18,35 @@
       <button id="pen" aria-label="Stift" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l2-7L16 3a2 2 0 0 1 3 0l2 2a2 2 0 0 1 0 3L11 18zM6 13l5 5"/></svg></button>
       <button id="eraser" aria-label="Radierer" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m14 3 7 7a2 2 0 0 1 0 3l-7 7H8l-5-5a2 2 0 0 1 0-3l8-9a2 2 0 0 1 3 0ZM7 8l9 9M8 20h13"/></svg></button>
       <button id="size" aria-label="Strichstärke ändern" data-size="0"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2" fill="currentColor"/></svg></button>
+      <button id="color" aria-label="Farbe wählen" aria-expanded="false" aria-controls="palette"><span class="color-chip"></span></button>
       <span class="divider"></span>
       <button id="stop" aria-label="Scheibe anhalten"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></button>
       <button id="undo" aria-label="Rückgängig" disabled><svg viewBox="0 0 24 24"><path d="m9 5-5 5 5 5M4 10h10a6 6 0 0 1 0 12" transform="translate(0 -2)"/></svg></button>
       <button id="clear" aria-label="Zeichnung löschen"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg></button>
       <button id="install" aria-label="App installieren" hidden><svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg></button>
+      <section id="sizes" class="panel sizes" aria-label="Strichstärke und Stiftdruck" hidden>
+        <button data-width="0" aria-label="Fein" aria-pressed="true"><span style="width:3px;height:3px"></span></button>
+        <button data-width="1" aria-label="Mittel" aria-pressed="false"><span style="width:7px;height:7px"></span></button>
+        <button data-width="2" aria-label="Dick" aria-pressed="false"><span style="width:13px;height:13px"></span></button>
+        <button data-width="3" aria-label="Sehr dick" aria-pressed="false"><span style="width:23px;height:23px"></span></button>
+        <span class="divider"></span>
+        <button id="pressure" aria-label="Strichstärke durch Stiftdruck steuern" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 18c6 0 3-12 9-12s3 12 9 12"/><path d="m9 16 3 4 3-4"/></svg></button>
+      </section>
+      <section id="palette" class="panel palette" aria-label="Farbauswahl" hidden>
+        <div id="presets" class="swatches" aria-label="Grundfarben">
+          <button class="swatch" data-color="#ffffff" style="--ink:#ffffff" aria-label="Weiß"></button>
+          <button class="swatch" data-color="#ff5277" style="--ink:#ff5277" aria-label="Pink"></button>
+          <button class="swatch" data-color="#ff9f43" style="--ink:#ff9f43" aria-label="Orange"></button>
+          <button class="swatch" data-color="#ffe66d" style="--ink:#ffe66d" aria-label="Gelb"></button>
+          <button class="swatch" data-color="#55e6c1" style="--ink:#55e6c1" aria-label="Mint"></button>
+          <button class="swatch" data-color="#71a7ff" style="--ink:#71a7ff" aria-label="Blau"></button>
+        </div>
+        <div id="recents" class="swatches recents" aria-label="Zuletzt gewählte Farben" hidden></div>
+        <div class="color-options">
+          <button id="rainbow" class="rainbow" aria-label="Regenbogenmodus" aria-pressed="false"><span class="color-chip"></span></button>
+          <label class="custom-color" aria-label="Eigene Farbe wählen"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><input id="custom-color" type="color" value="#ffffff" aria-label="Eigene Farbe wählen"></label>
+        </div>
+      </section>
     </nav>
   </main>
   <script type="module" src="./app.js"></script>

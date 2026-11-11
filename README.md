@@ -1,6 +1,6 @@
 # Rotator
 
-Minimalistische Zeichenscheibe für Android-Smartphones und Tablets. Weiß auf Schwarz, ohne sichtbare Beschriftung, ohne Framework oder externe Dienste.
+Minimalistische Zeichenscheibe für Android-Smartphones und Tablets. Farbige Spuren auf Schwarz, ohne sichtbare Beschriftung, ohne Framework oder externe Dienste.
 
 **App:** https://thisisbert.github.io/Rotator/
 
@@ -9,7 +9,10 @@ Minimalistische Zeichenscheibe für Android-Smartphones und Tablets. Weiß auf S
 - Außenring tangential wischen: anschubsen, mehrfach wischen für mehr Schwung. Gegenrichtung bremst oder kehrt die Rotation um. Festhalten am Ring bremst.
 - Innen mit Finger oder Stift zeichnen, auch während der Rotation. Stift still halten für Kreise, zur Mitte bewegen für Spiralen. Kurzes Antippen erzeugt Punkte.
 - Ring und Zeichenfläche lassen sich gleichzeitig bedienen. Bei erkanntem Stiftkontakt werden zusätzliche Fingerkontakte im Zeichenbereich ignoriert; der Außenring bleibt bedienbar.
-- Symbole: Stift, Radierer, drei Strichstärken, Stopp, Rückgängig (sechs Schritte), Löschen. Löschen ist rückgängig machbar.
+- Symbole: Stift, Radierer, Strichstärke, Farbe, Stopp, Rückgängig (sechs Schritte), Löschen. Löschen ist rückgängig machbar.
+- Der Punkt öffnet vier direkt wählbare Strichstärken. Die Wellenlinie daneben aktiviert/deaktiviert druckabhängige Breite für Stifte: mittlerer Druck entspricht der gewählten Stärke, leichter Druck zeichnet feiner, stärkerer breiter. Finger und Maus zeichnen mit konstanter Breite. Der Stift und Browser müssen echte Druckwerte liefern.
+- Der Farbkreis öffnet Grundfarben, die sechs zuletzt gewählten Farben und eine freie Farbauswahl über das Plus. Farben und Stifteinstellungen bleiben nach dem Neustart erhalten.
+- Der Regenbogenkreis aktiviert einen kontinuierlichen Farbverlauf entlang der Spur. Auch ein stillgehaltener Stift erzeugt auf der rotierenden Scheibe das Spektrum; auf einer ruhenden Scheibe bleibt ein Punkt farbstabil. Eine feste Farbe beendet den Regenbogenmodus. Der Radierer radiert weiterhin alle Farben.
 - Desktop: Mausrad dreht; Leertaste stoppt; Strg/Cmd+Z macht rückgängig.
 - Android: Im Browser-Menü „App installieren“ beziehungsweise „Zum Startbildschirm hinzufügen“. Wenn verfügbar erscheint zusätzlich ein Installationssymbol.
 

@@ -1,4 +1,5 @@
 import {TAU, MAX_SPEED, advance, angleDelta, strokeSamples} from './physics.js';
+import {WIDTHS, contactPressure, strokeWidth, nextHue, recentColors} from './brush.js';
 
 const canvas=document.querySelector('#disc'), ctx=canvas.getContext('2d',{alpha:false});
 const ink=document.createElement('canvas');
@@ -9,7 +10,17 @@ const pointers=new Map(), history=[];
 let width=0,height=0,cx=0,cy=0,r=0,dpr=1;
 let angle=0,speed=0,lastTime=performance.now(),tool='pen',size=0;
 let dirty=false,saveTimer,db,restoring=true,installPrompt;
-const widths=[0.009,0.018,0.035];
+let color='#ffffff',rainbow=false,rainbowHue=0,pressureEnabled=true,recents=[];
+try {
+  const prefs=JSON.parse(localStorage.getItem('rotator-brush')||'{}');
+  if(/^#[\da-f]{6}$/i.test(prefs.color))color=prefs.color;
+  if(Number.isInteger(prefs.size) && prefs.size>=0 && prefs.size<WIDTHS.length)size=prefs.size;
+  pressureEnabled=prefs.pressure!==false;
+  if(Array.isArray(prefs.recents))recents=[...new Set(prefs.recents.filter(c=>/^#[\da-f]{6}$/i.test(c)))].slice(0,6);
+}catch{}
+function savePreferences(){
+  try{localStorage.setItem('rotator-brush',JSON.stringify({color,size,pressure:pressureEnabled,recents}));}catch{}
+}
 
 function resize(){
   // Cancel contacts when orientation changes; keep the full-resolution drawing.
@@ -39,20 +50,36 @@ function save(){
 }
 function drawContact(p){
   if(p.kind!=='draw')return;
-  const points=strokeSamples(p.previous,p.pos,p.angle,angle,Math.max(Math.hypot(p.previous.x,p.previous.y),Math.hypot(p.pos.x,p.pos.y)));
+  const points=strokeSamples(p.previous,p.pos,p.angle,angle,Math.max(Math.hypot(p.previous.x,p.previous.y),Math.hypot(p.pos.x,p.pos.y)),.004);
   brush.save();
   brush.translate(ink.width/2,ink.height/2);brush.scale(ink.width/2,ink.height/2);
   brush.beginPath();brush.arc(0,0,1,0,TAU);brush.clip();
   brush.globalCompositeOperation=p.tool==='eraser'?'destination-out':'source-over';
-  brush.strokeStyle=brush.fillStyle='#fff';brush.lineCap=brush.lineJoin='round';
-  const pressure=p.type==='pen'?Math.max(.2,p.pressure):1;
-  brush.lineWidth=widths[p.size]*(p.tool==='eraser'?5:1)*pressure;
-  brush.beginPath();brush.moveTo(points[0].x,points[0].y);
-  for(let i=1;i<points.length;i++)brush.lineTo(points[i].x,points[i].y);
-  brush.stroke();
+  brush.strokeStyle=brush.fillStyle=p.color;brush.lineCap=brush.lineJoin='round';
+  const startWidth=strokeWidth(p.size,p.type,p.previousPressure,p.pressureEnabled,p.tool==='eraser');
+  const endWidth=strokeWidth(p.size,p.type,p.pressure,p.pressureEnabled,p.tool==='eraser');
+  const spectrum=p.rainbow && p.tool!=='eraser';
+  if(!spectrum && Math.abs(startWidth-endWidth)<.00001){
+    brush.lineWidth=endWidth;
+    brush.beginPath();brush.moveTo(points[0].x,points[0].y);
+    for(let i=1;i<points.length;i++)brush.lineTo(points[i].x,points[i].y);
+    brush.stroke();
+  }else{
+    for(let i=1;i<points.length;i++){
+      const a=points[i-1],b=points[i];
+      if(spectrum){
+        p.hue=nextHue(p.hue,Math.hypot(b.x-a.x,b.y-a.y));
+        brush.strokeStyle=brush.fillStyle=`hsl(${p.hue} 100% 65%)`;
+      }
+      brush.lineWidth=startWidth+(endWidth-startWidth)*i/(points.length-1);
+      brush.beginPath();brush.moveTo(a.x,a.y);brush.lineTo(b.x,b.y);brush.stroke();
+    }
+  }
+  brush.lineWidth=endWidth;
   const end=points.at(-1);brush.beginPath();brush.arc(end.x,end.y,brush.lineWidth/2,0,TAU);brush.fill();
   brush.restore();
-  p.previous={...p.pos};p.angle=angle;
+  p.previous={...p.pos};p.angle=angle;p.previousPressure=p.pressure;
+  if(spectrum)rainbowHue=p.hue;
   changed();
 }
 function step(now){
@@ -65,6 +92,7 @@ function step(now){
   if(!pointers.size)angle%=TAU;
 }
 canvas.addEventListener('pointerdown',e=>{
+  closePanels();
   if(restoring || (e.pointerType==='mouse' && e.button!==0))return;
   const pos=position(e),distance=Math.hypot(pos.x,pos.y);
   if(distance>1+50/r)return;
@@ -74,7 +102,8 @@ canvas.addEventListener('pointerdown',e=>{
   const kind=distance>1?'spin':'draw';
   if(kind==='spin' && [...pointers.values()].some(p=>p.kind==='spin'))return;
   if(kind==='draw' && ![...pointers.values()].some(p=>p.kind==='draw'))snapshot();
-  const p={kind,type:e.pointerType,pos,previous:pos,angle,tool:(e.button===5 || e.buttons===32)?'eraser':tool,size,pressure:e.pressure||.5,time:performance.now()};
+  const pressure=contactPressure(e.pressure);
+  const p={kind,type:e.pointerType,pos,previous:pos,angle,tool:(e.button===5 || e.buttons===32)?'eraser':tool,size,pressure,previousPressure:pressure,pressureEnabled,color,rainbow,hue:rainbowHue,time:performance.now()};
   pointers.set(e.pointerId,p);drawContact(p);
 });
 canvas.addEventListener('pointermove',e=>{
@@ -84,7 +113,7 @@ canvas.addEventListener('pointermove',e=>{
   // Interpolate position and rotation together; drawing a radial jump after
   // advancing the old position would leave stair steps in fast spirals.
   if(p.kind==='draw'){
-    p.pos=pos;p.pressure=e.pressure||p.pressure;step(now);return;
+    p.pos=pos;p.pressure=contactPressure(e.pressure);step(now);return;
   }
   step(now);
   if(p.kind==='spin'){
@@ -96,7 +125,7 @@ canvas.addEventListener('pointermove',e=>{
     }
     p.time=now;
   }
-  p.pos=pos;p.pressure=e.pressure||p.pressure;
+  p.pos=pos;p.pressure=contactPressure(e.pressure);
   drawContact(p);
 });
 function release(e){
@@ -137,7 +166,51 @@ function render(now){
 }
 function select(value){tool=value;buttons.pen.setAttribute('aria-pressed',value==='pen');buttons.eraser.setAttribute('aria-pressed',value==='eraser');}
 buttons.pen.onclick=()=>select('pen');buttons.eraser.onclick=()=>select('eraser');
-buttons.size.onclick=()=>{size=(size+1)%widths.length;buttons.size.querySelector('circle').setAttribute('r',[2,3.5,5][size]);buttons.size.dataset.size=size;};
+const sizePanel=document.querySelector('#sizes'),palette=document.querySelector('#palette');
+function closePanels(){
+  sizePanel.hidden=palette.hidden=true;
+  buttons.size.setAttribute('aria-expanded','false');buttons.color.setAttribute('aria-expanded','false');
+}
+function togglePanel(panel,button){const open=panel.hidden;closePanels();panel.hidden=!open;button.setAttribute('aria-expanded',String(open));}
+buttons.size.onclick=()=>togglePanel(sizePanel,buttons.size);
+buttons.color.onclick=()=>togglePanel(palette,buttons.color);
+function updateBrushUI(){
+  buttons.size.querySelector('circle').setAttribute('r',[2,3.5,5.5,8][size]);
+  buttons.size.dataset.size=size;
+  buttons.size.setAttribute('aria-label',`Strichstärke wählen, Stufe ${size+1}`);
+  document.querySelectorAll('[data-width]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.width)===size)));
+  buttons.pressure.setAttribute('aria-pressed',String(pressureEnabled));
+  buttons.rainbow.setAttribute('aria-pressed',String(rainbow));
+  buttons.color.classList.toggle('rainbow',rainbow);
+  buttons.color.style.setProperty('--ink',color);
+  document.querySelector('#custom-color').value=color;
+  document.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(!rainbow && b.dataset.color===color)));
+}
+document.querySelectorAll('[data-width]').forEach(b=>b.onclick=()=>{
+  size=Number(b.dataset.width);updateBrushUI();savePreferences();closePanels();
+});
+buttons.pressure.onclick=()=>{pressureEnabled=!pressureEnabled;updateBrushUI();savePreferences();};
+function renderRecents(){
+  const row=document.querySelector('#recents');row.replaceChildren();row.hidden=!recents.length;
+  for(const c of recents){
+    const b=document.createElement('button');b.className='swatch';b.dataset.color=c;
+    b.style.setProperty('--ink',c);b.setAttribute('aria-label',`Letzte Farbe ${c}`);
+    b.onclick=()=>chooseColor(c);row.append(b);
+  }
+}
+function chooseColor(value){
+  color=value.toLowerCase();rainbow=false;recents=recentColors(recents,color);
+  renderRecents();updateBrushUI();savePreferences();select('pen');closePanels();
+}
+document.querySelectorAll('#presets [data-color]').forEach(b=>b.onclick=()=>chooseColor(b.dataset.color));
+document.querySelector('#custom-color').addEventListener('input',e=>{
+  color=e.target.value;rainbow=false;updateBrushUI();select('pen');
+});
+document.querySelector('#custom-color').addEventListener('change',e=>chooseColor(e.target.value));
+buttons.rainbow.onclick=()=>{rainbow=!rainbow;select('pen');updateBrushUI();closePanels();};
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('nav'))closePanels();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanels();});
+renderRecents();updateBrushUI();
 buttons.stop.onclick=()=>{step(performance.now());speed=0;};
 buttons.undo.onclick=()=>{
   if(!history.length)return;pointers.clear();brush.putImageData(history.pop(),0,0);buttons.undo.disabled=!history.length;changed();

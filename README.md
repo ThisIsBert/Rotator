@@ -31,6 +31,8 @@ Vorschau: http://127.0.0.1:4173/Rotator/
 
 `public/` ist die vollständige statische PWA. `physics.js` enthält zeitbasierte Rotation und adaptive Abtastung in Scheibenkoordinaten. Die Zeichnung liegt auf einer separaten 1536×1536-Pixel-Fläche. Bis zu acht Umdrehungen pro Sekunde; kurze Mehrfachbelichtung reduziert Stroboskopeffekte. Der tatsächliche Bewegungseindruck hängt von Bildwiederholrate und Leistung des Geräts ab.
 
+Die Rotationsunschärfe in `rotation-blur.js` verwendet weiterhin 6 ms Belichtungszeit. Die Zahl der Zwischenpositionen wächst mit Drehgeschwindigkeit und Bildgröße von 1 bis 256; im Zwischenpuffer bleibt ihr Abstand am Rand höchstens ein Pixel. Jeder Mischdurchlauf verdoppelt die Positionenzahl, wodurch maximal acht Durchläufe statt 256 vollständiger Einzelbilder nötig sind. Die Zwischenpuffer sind für begrenzte Renderkosten auf 1024×1024 Pixel beschränkt. Unveränderte Zeichnungen können den vorberechneten Unschärfepuffer bei nur geringfügig geänderter Geschwindigkeit wiederverwenden. Im Stillstand wird direkt die scharfe Originalzeichnung gerendert. Der Außenring bleibt separat gerendert.
+
 ## GitHub Pages
 
 In Settings → Pages ist GitHub Actions als Quelle eingestellt. Jeder Push auf `main` führt die Physiktests aus und veröffentlicht `public/` über `.github/workflows/pages.yml`.

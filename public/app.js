@@ -1,10 +1,13 @@
 import {TAU, MAX_SPEED, advance, angleDelta, strokeSamples} from './physics.js';
 import {WIDTHS, contactPressure, strokeWidth, nextHue, recentColors} from './brush.js';
+import {RotationBlur} from './rotation-blur.js';
 
 const canvas=document.querySelector('#disc'), ctx=canvas.getContext('2d',{alpha:false});
 const ink=document.createElement('canvas');
 ink.width=ink.height=1536;
 const brush=ink.getContext('2d');
+const rotationBlur=new RotationBlur();
+let inkRevision=0;
 const buttons=Object.fromEntries([...document.querySelectorAll('button')].map(b=>[b.id,b]));
 const pointers=new Map(), history=[];
 let width=0,height=0,cx=0,cy=0,r=0,dpr=1;
@@ -37,7 +40,7 @@ function snapshot(){
   if(history.length>6)history.shift();
   buttons.undo.disabled=false;
 }
-function changed(){dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(save,700);}
+function changed(){inkRevision++;dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(save,700);}
 function save(){
   if(!db || !dirty)return;
   dirty=false;
@@ -153,13 +156,9 @@ function render(now){
   }
   ctx.restore();
   ctx.beginPath();ctx.arc(0,0,r,0,TAU);ctx.fillStyle='#000';ctx.fill();ctx.save();ctx.clip();
-  // Short exposure integrates several orientations, suppressing strobing at high RPM.
-  const exposure=Math.min(Math.abs(speed)*.006,.25),samples=exposure>.025?5:1;
-  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=1/samples;
-  for(let i=0;i<samples;i++){
-    ctx.save();ctx.rotate(angle-(samples===1?0:speed*.006*i/(samples-1)));
-    ctx.drawImage(ink,-r,-r,r*2,r*2);ctx.restore();
-  }
+  const blurred=rotationBlur.frame(ink,speed,r*dpr,inkRevision);
+  ctx.rotate(angle+blurred.offset);
+  ctx.drawImage(blurred.canvas,-r,-r,r*2,r*2);
   ctx.restore();
   ctx.beginPath();ctx.arc(0,0,1.5,0,TAU);ctx.fillStyle='#555';ctx.fill();
   ctx.restore();requestAnimationFrame(render);
@@ -234,7 +233,7 @@ try{
     db=request.result;
     const read=db.transaction('art').objectStore('art').get('drawing');
     read.onsuccess=async()=>{
-      try{if(read.result){const bitmap=await createImageBitmap(read.result);brush.drawImage(bitmap,0,0,ink.width,ink.height);bitmap.close();}}catch{}finally{restoring=false;}
+      try{if(read.result){const bitmap=await createImageBitmap(read.result);brush.drawImage(bitmap,0,0,ink.width,ink.height);bitmap.close();inkRevision++;}}catch{}finally{restoring=false;}
     };
     read.onerror=()=>{restoring=false;};
   };

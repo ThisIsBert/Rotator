@@ -1,6 +1,7 @@
 import {TAU, MAX_SPEED, advance, angleDelta, strokeSamples} from './physics.js';
 import {WIDTHS, contactPressure, strokeWidth, nextHue, recentColors} from './brush.js';
 import {RotationBlur} from './rotation-blur.js';
+import {setupGallery} from './gallery.js';
 
 const canvas=document.querySelector('#disc'), ctx=canvas.getContext('2d',{alpha:false});
 const ink=document.createElement('canvas');
@@ -216,6 +217,7 @@ buttons.undo.onclick=()=>{
 };
 buttons.clear.onclick=()=>{pointers.clear();snapshot();brush.clearRect(0,0,ink.width,ink.height);changed();};
 window.addEventListener('keydown',e=>{
+  if(document.querySelector('dialog[open]'))return;
   if(e.code==='Space'){e.preventDefault();buttons.stop.click();}
   if((e.ctrlKey||e.metaKey) && e.key==='z'){e.preventDefault();buttons.undo.click();}
 });
@@ -227,10 +229,14 @@ buttons.install.onclick=async()=>{if(!installPrompt)return;await installPrompt.p
 window.addEventListener('appinstalled',()=>{buttons.install.hidden=true;});
 
 try{
-  const request=indexedDB.open('rotator',1);
-  request.onupgradeneeded=()=>request.result.createObjectStore('art');
+  const request=indexedDB.open('rotator',2);
+  request.onupgradeneeded=()=>{
+    if(!request.result.objectStoreNames.contains('art'))request.result.createObjectStore('art');
+    if(!request.result.objectStoreNames.contains('gallery'))request.result.createObjectStore('gallery',{keyPath:'id',autoIncrement:true});
+  };
   request.onsuccess=()=>{
     db=request.result;
+    db.onversionchange=()=>{db.close();db=null;};
     const read=db.transaction('art').objectStore('art').get('drawing');
     read.onsuccess=async()=>{
       try{if(read.result){const bitmap=await createImageBitmap(read.result);brush.drawImage(bitmap,0,0,ink.width,ink.height);bitmap.close();inkRevision++;}}catch{}finally{restoring=false;}
@@ -240,5 +246,9 @@ try{
   request.onerror=()=>{restoring=false;};
   request.onblocked=()=>{restoring=false;};
 }catch{restoring=false;}
+setupGallery({getDB:()=>db,isReady:()=>!restoring,ink,
+  pause:()=>{step(performance.now());pointers.clear();speed=0;closePanels();},
+  open:bitmap=>{snapshot();brush.clearRect(0,0,ink.width,ink.height);brush.drawImage(bitmap,0,0);angle=0;changed();save();}
+});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
 resize();requestAnimationFrame(render);

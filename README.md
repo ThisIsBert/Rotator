@@ -18,6 +18,12 @@ Minimalistische Zeichenscheibe für Android-Smartphones und Tablets. Farbige Spu
 
 Nach dem ersten vollständigen Laden funktioniert die App offline. Die Zeichnung wird lokal in IndexedDB gespeichert, nicht hochgeladen. Browserdaten löschen entfernt sie. Rückgängig-Historie und Drehgeschwindigkeit gelten nur für die laufende Sitzung.
 
+## Lokale Galerie
+
+Das Bildsymbol oben links öffnet die Galerie. „Aktuelle Zeichnung speichern“ legt eine unabhängige Kopie auf diesem Gerät ab. Gespeicherte Bilder lassen sich öffnen und weiterbearbeiten, als PNG herunterladen oder nach Bestätigung löschen. Öffnen ersetzt die Zeichenfläche und ist rückgängig machbar; das Galerie-Original bleibt erhalten. PNGs enthalten den schwarzen Hintergrund, während gespeicherte Zeichnungen weiterhin radiert werden können.
+
+Die Galerie funktioniert offline und bleibt nach einem Neustart erhalten. Sie wird nicht zwischen Geräten synchronisiert. Das Löschen von Browser-/App-Daten entfernt auch die Galerie; wichtige Bilder deshalb als PNG exportieren. Die App fragt nach Möglichkeit dauerhaften Browserspeicher an, dessen Freigabe der Browser entscheidet.
+
 ## Entwicklung
 
 Node.js 22 oder neuer, keine npm-Abhängigkeiten:

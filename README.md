@@ -20,7 +20,7 @@ Nach dem ersten vollständigen Laden funktioniert die App offline. Die Zeichnung
 
 ## Lokale Galerie
 
-Das Bildsymbol oben links öffnet die Galerie. „Aktuelle Zeichnung speichern“ legt eine unabhängige Kopie auf diesem Gerät ab. Gespeicherte Bilder lassen sich öffnen und weiterbearbeiten, als PNG herunterladen oder nach Bestätigung löschen. Öffnen ersetzt die Zeichenfläche und ist rückgängig machbar; das Galerie-Original bleibt erhalten. PNGs enthalten den schwarzen Hintergrund, während gespeicherte Zeichnungen weiterhin radiert werden können.
+Das Bildsymbol oben links zeigt die aktuelle Zeichnung gro? mit Speichern, Runterladen und deaktiviertem L?schen. Das kleine Bildsymbol im Dialog ?ffnet das horizontal scrollbar angelegte Raster mit drei Reihen. Ein Klick auf ein Vorschaubild ?ffnet die Zoomansicht mit ?ffnen, Runterladen und L?schen. Das X kehrt bei gespeicherten Bildern zum Raster zur?ck und schlie?t ansonsten den Dialog. ?ffnen ersetzt die Zeichenfl?che und ist r?ckg?ngig machbar; das Galerie-Original bleibt erhalten. Downloads sind PNGs mit schwarzem Hintergrund.
 
 Die Galerie funktioniert offline und bleibt nach einem Neustart erhalten. Sie wird nicht zwischen Geräten synchronisiert. Das Löschen von Browser-/App-Daten entfernt auch die Galerie; wichtige Bilder deshalb als PNG exportieren. Die App fragt nach Möglichkeit dauerhaften Browserspeicher an, dessen Freigabe der Browser entscheidet.
 

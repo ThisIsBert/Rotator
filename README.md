@@ -11,7 +11,7 @@ Minimalistische Zeichenscheibe für Android-Smartphones und Tablets. Farbige Spu
 - Ring und Zeichenfläche lassen sich gleichzeitig bedienen. Bei erkanntem Stiftkontakt werden zusätzliche Fingerkontakte im Zeichenbereich ignoriert; der Außenring bleibt bedienbar.
 - Symbole: Stift, Radierer, Strichstärke, Farbe, Stopp, Rückgängig (sechs Schritte), Löschen. Löschen ist rückgängig machbar.
 - Der Punkt öffnet vier direkt wählbare Strichstärken. Die Wellenlinie daneben aktiviert/deaktiviert druckabhängige Breite für Stifte: mittlerer Druck entspricht der gewählten Stärke, leichter Druck zeichnet feiner, stärkerer breiter. Finger und Maus zeichnen mit konstanter Breite. Der Stift und Browser müssen echte Druckwerte liefern.
-- Der Farbkreis öffnet Grundfarben, die sechs zuletzt gewählten Farben und eine freie Farbauswahl über das Plus. Farben und Stifteinstellungen bleiben nach dem Neustart erhalten.
+- Der Farbkreis öffnet direkt eine freie Farbfläche mit Farbton- und Helligkeitsreglern auf Schwarz. Die Auswahl wird sofort übernommen und bleibt nach einem Neustart erhalten. Der Regenbogenmodus ist über sein Symbol erreichbar.
 - Der Regenbogenkreis aktiviert einen kontinuierlichen Farbverlauf entlang der Spur. Auch ein stillgehaltener Stift erzeugt auf der rotierenden Scheibe das Spektrum; auf einer ruhenden Scheibe bleibt ein Punkt farbstabil. Eine feste Farbe beendet den Regenbogenmodus. Der Radierer radiert weiterhin alle Farben.
 - Desktop: Mausrad dreht; Leertaste stoppt; Strg/Cmd+Z macht rückgängig.
 - Android: Im Browser-Menü „App installieren“ beziehungsweise „Zum Startbildschirm hinzufügen“. Wenn verfügbar erscheint zusätzlich ein Installationssymbol.
@@ -20,7 +20,7 @@ Nach dem ersten vollständigen Laden funktioniert die App offline. Die Zeichnung
 
 ## Lokale Galerie
 
-Das Bildsymbol oben links zeigt die aktuelle Zeichnung gro? mit Speichern, Runterladen und deaktiviertem L?schen. Das kleine Bildsymbol im Dialog ?ffnet das horizontal scrollbar angelegte Raster mit drei Reihen. Ein Klick auf ein Vorschaubild ?ffnet die Zoomansicht mit ?ffnen, Runterladen und L?schen. Das X kehrt bei gespeicherten Bildern zum Raster zur?ck und schlie?t ansonsten den Dialog. ?ffnen ersetzt die Zeichenfl?che und ist r?ckg?ngig machbar; das Galerie-Original bleibt erhalten. Downloads sind PNGs mit schwarzem Hintergrund.
+Das Bildsymbol oben links öffnet die aktuelle Zeichnung als Detailansicht über der Galerie. Das X der Detailansicht führt zum Raster mit drei Spalten zurück. Ein Vorschaubild öffnet die schwebende Detailansicht; die umliegenden Galeriebilder bleiben sichtbar. Die aktuelle Zeichnung bietet Speichern, Runterladen und deaktiviertes Löschen; gespeicherte Bilder bieten Öffnen, Runterladen und Löschen. Öffnen ist rückgängig machbar. Downloads sind PNGs mit schwarzem Hintergrund.
 
 Die Galerie funktioniert offline und bleibt nach einem Neustart erhalten. Sie wird nicht zwischen Geräten synchronisiert. Das Löschen von Browser-/App-Daten entfernt auch die Galerie; wichtige Bilder deshalb als PNG exportieren. Die App fragt nach Möglichkeit dauerhaften Browserspeicher an, dessen Freigabe der Browser entscheidet.
 

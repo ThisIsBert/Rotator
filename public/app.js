@@ -1,3 +1,4 @@
+import {setupColorPicker} from './color-picker.js';
 import {TAU, MAX_SPEED, advance, angleDelta, strokeSamples} from './physics.js';
 import {WIDTHS, contactPressure, strokeWidth, nextHue, recentColors} from './brush.js';
 import {RotationBlur} from './rotation-blur.js';
@@ -173,7 +174,7 @@ function closePanels(){
 }
 function togglePanel(panel,button){const open=panel.hidden;closePanels();panel.hidden=!open;button.setAttribute('aria-expanded',String(open));}
 buttons.size.onclick=()=>togglePanel(sizePanel,buttons.size);
-buttons.color.onclick=()=>togglePanel(palette,buttons.color);
+buttons.color.onclick=()=>{picker.setColor(color);togglePanel(palette,buttons.color);};
 function updateBrushUI(){
   buttons.size.querySelector('circle').setAttribute('r',[2,3.5,5.5,8][size]);
   buttons.size.dataset.size=size;
@@ -183,41 +184,27 @@ function updateBrushUI(){
   buttons.rainbow.setAttribute('aria-pressed',String(rainbow));
   buttons.color.classList.toggle('rainbow',rainbow);
   buttons.color.style.setProperty('--ink',color);
-  document.querySelector('#custom-color').value=color;
+
   document.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(!rainbow && b.dataset.color===color)));
 }
 document.querySelectorAll('[data-width]').forEach(b=>b.onclick=()=>{
   size=Number(b.dataset.width);updateBrushUI();savePreferences();closePanels();
 });
 buttons.pressure.onclick=()=>{pressureEnabled=!pressureEnabled;updateBrushUI();savePreferences();};
-function renderRecents(){
-  const row=document.querySelector('#recents');row.replaceChildren();row.hidden=!recents.length;
-  for(const c of recents){
-    const b=document.createElement('button');b.className='swatch';b.dataset.color=c;
-    b.style.setProperty('--ink',c);b.setAttribute('aria-label',`Letzte Farbe ${c}`);
-    b.onclick=()=>chooseColor(c);row.append(b);
-  }
-}
-function chooseColor(value){
-  color=value.toLowerCase();rainbow=false;recents=recentColors(recents,color);
-  renderRecents();updateBrushUI();savePreferences();select('pen');closePanels();
-}
-document.querySelectorAll('#presets [data-color]').forEach(b=>b.onclick=()=>chooseColor(b.dataset.color));
-document.querySelector('#custom-color').addEventListener('input',e=>{
-  color=e.target.value;rainbow=false;updateBrushUI();select('pen');
+const picker=setupColorPicker(color,value=>{
+  color=value;rainbow=false;updateBrushUI();savePreferences();select('pen');
 });
-document.querySelector('#custom-color').addEventListener('change',e=>chooseColor(e.target.value));
 buttons.rainbow.onclick=()=>{rainbow=!rainbow;select('pen');updateBrushUI();closePanels();};
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('nav'))closePanels();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanels();});
-renderRecents();updateBrushUI();
+updateBrushUI();
 buttons.stop.onclick=()=>{step(performance.now());speed=0;};
 buttons.undo.onclick=()=>{
   if(!history.length)return;pointers.clear();brush.putImageData(history.pop(),0,0);buttons.undo.disabled=!history.length;changed();
 };
 buttons.clear.onclick=()=>{pointers.clear();snapshot();brush.clearRect(0,0,ink.width,ink.height);changed();};
 window.addEventListener('keydown',e=>{
-  if(document.querySelector('dialog[open]'))return;
+  if(document.querySelector('dialog[open]')||e.target.closest('input,#color-field'))return;
   if(e.code==='Space'){e.preventDefault();buttons.stop.click();}
   if((e.ctrlKey||e.metaKey) && e.key==='z'){e.preventDefault();buttons.undo.click();}
 });

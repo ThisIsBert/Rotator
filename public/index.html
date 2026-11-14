@@ -33,19 +33,12 @@
         <button id="pressure" aria-label="Strichstärke durch Stiftdruck steuern" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 18c6 0 3-12 9-12s3 12 9 12"/><path d="m9 16 3 4 3-4"/></svg></button>
       </section>
       <section id="palette" class="panel palette" aria-label="Farbauswahl" hidden>
-        <div id="presets" class="swatches" aria-label="Grundfarben">
-          <button class="swatch" data-color="#ffffff" style="--ink:#ffffff" aria-label="Weiß"></button>
-          <button class="swatch" data-color="#ff5277" style="--ink:#ff5277" aria-label="Pink"></button>
-          <button class="swatch" data-color="#ff9f43" style="--ink:#ff9f43" aria-label="Orange"></button>
-          <button class="swatch" data-color="#ffe66d" style="--ink:#ffe66d" aria-label="Gelb"></button>
-          <button class="swatch" data-color="#55e6c1" style="--ink:#55e6c1" aria-label="Mint"></button>
-          <button class="swatch" data-color="#71a7ff" style="--ink:#71a7ff" aria-label="Blau"></button>
+        <div id="color-field" tabindex="0" role="group" aria-label="Sättigung und Helligkeit, Pfeiltasten zum Ändern"><span id="color-cursor"></span></div>
+        <div class="color-controls">
+          <input id="color-hue" type="range" min="0" max="360" value="0" aria-label="Farbton">
+          <input id="color-value" type="range" min="0" max="100" value="100" aria-label="Helligkeit">
         </div>
-        <div id="recents" class="swatches recents" aria-label="Zuletzt gewählte Farben" hidden></div>
-        <div class="color-options">
-          <button id="rainbow" class="rainbow" aria-label="Regenbogenmodus" aria-pressed="false"><span class="color-chip"></span></button>
-          <label class="custom-color" aria-label="Eigene Farbe wählen"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><input id="custom-color" type="color" value="#ffffff" aria-label="Eigene Farbe wählen"></label>
-        </div>
+        <div class="color-footer"><span id="color-preview" aria-hidden="true"></span><button id="rainbow" class="rainbow" aria-label="Regenbogenmodus" aria-pressed="false"><span class="color-chip"></span></button></div>
       </section>
     </nav>
   </main>

@@ -1,12 +1,12 @@
-﻿export function setupGallery({getDB,isReady,ink,pause,open}){
+export function setupGallery({getDB,isReady,ink,pause,open}){
   const icon='<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 18 6-6 4 4 3-3 5 5"/></svg>';
   const dialog=document.createElement('dialog');
   dialog.className='gallery';dialog.setAttribute('aria-label','Bilder');
-  dialog.innerHTML='<header><button class="gallery-back" aria-label="Gespeicherte Bilder anzeigen">'+icon+'</button><button class="gallery-close" aria-label="Ansicht schließen">×</button></header><section class="gallery-grid" aria-label="Gespeicherte Bilder" hidden></section><section class="gallery-zoom" aria-label="Bildansicht"><img alt="Aktuelle Zeichnung"><div class="gallery-actions"><button class="gallery-primary">Speichern</button><button class="gallery-download">Runterladen</button><button class="gallery-delete" disabled>Löschen</button></div></section><p role="status" aria-live="polite"></p>';
+  dialog.innerHTML='<header><button class="gallery-close" aria-label="Ansicht schließen">×</button></header><section class="gallery-grid" aria-label="Gespeicherte Bilder" hidden></section><dialog class="gallery-zoom" aria-label="Bildansicht"><button class="detail-close" aria-label="Zurück zur Galerie">×</button><img alt="Aktuelle Zeichnung"><div class="gallery-actions"><button class="gallery-primary">Speichern</button><button class="gallery-download">Runterladen</button><button class="gallery-delete" disabled>Löschen</button></div><p role="status" aria-live="polite"></p></dialog>';
   document.body.append(dialog);
   const trigger=document.createElement('button');trigger.id='gallery';trigger.setAttribute('aria-label','Bilder öffnen');trigger.innerHTML=icon;document.querySelector('main').append(trigger);
   const grid=dialog.querySelector('.gallery-grid'),zoom=dialog.querySelector('.gallery-zoom'),image=zoom.querySelector('img'),status=dialog.querySelector('[role=status]');
-  const primary=dialog.querySelector('.gallery-primary'),remove=dialog.querySelector('.gallery-delete'),back=dialog.querySelector('.gallery-back');
+  const primary=dialog.querySelector('.gallery-primary'),remove=dialog.querySelector('.gallery-delete');
   let urls=[],busy=false,selected=null,zoomURL=null;
   const message=text=>{status.textContent=text;};
   const blobFrom=canvas=>new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Bild konnte nicht erstellt werden.')),'image/png'));
@@ -26,43 +26,45 @@
   async function run(action){
     if(busy)return;busy=true;updateButtons();message('');
     try{await action();}catch(error){message(error.message||'Aktion fehlgeschlagen. Bitte erneut versuchen.');}
-    finally{busy=false;updateButtons();if(dialog.open&&!zoom.hidden)primary.focus();}
+    finally{busy=false;updateButtons();if(zoom.open)primary.focus();}
   }
   function showZoom(record){
-    selected=record;cleanupGrid();
+    selected=record;
     if(zoomURL)URL.revokeObjectURL(zoomURL);
     zoomURL=URL.createObjectURL(record.ink);image.src=zoomURL;image.alt=record.id?'Gespeicherte Zeichnung':'Aktuelle Zeichnung';
-    primary.textContent=record.id?'Öffnen':'Speichern';grid.hidden=true;zoom.hidden=false;back.hidden=false;message('');
+    primary.textContent=record.id?'Öffnen':'Speichern';grid.hidden=false;if(!zoom.open)zoom.showModal();message('');
     updateButtons();primary.focus();
   }
   async function showGrid(){
     const records=await operation('readonly',store=>store.getAll());cleanupGrid();
-    grid.hidden=false;zoom.hidden=true;back.hidden=true;message('');
+    grid.hidden=false;zoom.close();message('');
     for(const record of records.reverse()){
       const button=document.createElement('button'),img=document.createElement('img');
       button.className='gallery-thumb';button.setAttribute('aria-label','Bild vergrößern');
       const url=URL.createObjectURL(record.preview);urls.push(url);img.src=url;img.alt='Gespeicherte Zeichnung';img.loading='lazy';
       button.append(img);button.onclick=()=>{if(!busy)showZoom(record);};grid.append(button);
     }
-    if(!records.length)message('Noch keine Bilder gespeichert.');
+
     dialog.querySelector('.gallery-close').focus();
   }
   trigger.onclick=()=>{
     if(!isReady())return;pause();dialog.showModal();
-    run(async()=>showZoom({ink:await blobFrom(ink)}));
+    run(async()=>{try{await showGrid();}catch{}showZoom({ink:await blobFrom(ink)});});
   };
-  back.onclick=()=>run(showGrid);
-  dialog.querySelector('.gallery-close').onclick=()=>{if(busy)return;if(!zoom.hidden&&selected?.id)run(showGrid);else dialog.close();};
-  dialog.addEventListener('cancel',event=>{if(busy){event.preventDefault();return;}if(!zoom.hidden&&selected?.id){event.preventDefault();run(showGrid);}});
-  dialog.addEventListener('close',()=>{cleanupGrid();if(zoomURL)URL.revokeObjectURL(zoomURL);zoomURL=null;image.removeAttribute('src');selected=null;});
+  dialog.querySelector('.gallery-close').onclick=()=>{if(!busy)dialog.close();};
+  dialog.querySelector('.detail-close').onclick=()=>{if(!busy)zoom.close();};
+  zoom.addEventListener('cancel',event=>{event.stopPropagation();if(busy)event.preventDefault();});
+  dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+  zoom.addEventListener('close',event=>{event.stopPropagation();dialog.querySelector('.gallery-close').focus();});
+  dialog.addEventListener('close',event=>{if(event.target!==dialog)return;zoom.close();cleanupGrid();if(zoomURL)URL.revokeObjectURL(zoomURL);zoomURL=null;image.removeAttribute('src');selected=null;});
   primary.onclick=()=>run(async()=>{
     const bitmap=await createImageBitmap(selected.ink);
-    if(selected.id){try{open(bitmap);}finally{bitmap.close();}dialog.close();return;}
+    if(selected.id){try{open(bitmap);}finally{bitmap.close();}zoom.close();dialog.close();return;}
     const preview=document.createElement('canvas');preview.width=preview.height=256;
     const ctx=preview.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,256,256);ctx.drawImage(bitmap,0,0,256,256);bitmap.close();
     const record={created:Date.now(),ink:selected.ink,preview:await blobFrom(preview)};
     record.id=await operation('readwrite',store=>store.add(record));
-    showZoom(record);message('Gespeichert.');navigator.storage?.persist?.().catch(()=>{});
+    await showGrid();showZoom(record);message('Gespeichert.');navigator.storage?.persist?.().catch(()=>{});
   });
   dialog.querySelector('.gallery-download').onclick=()=>run(async()=>{
     const bitmap=await createImageBitmap(selected.ink),canvas=document.createElement('canvas');canvas.width=canvas.height=1536;

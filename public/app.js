@@ -167,14 +167,21 @@ function render(now){
 }
 function select(value){tool=value;buttons.pen.setAttribute('aria-pressed',value==='pen');buttons.eraser.setAttribute('aria-pressed',value==='eraser');}
 buttons.pen.onclick=()=>select('pen');buttons.eraser.onclick=()=>select('eraser');
-const sizePanel=document.querySelector('#sizes'),palette=document.querySelector('#palette');
+const sizePanel=document.querySelector('#sizes'),palette=document.querySelector('#palette'),colorPanel=document.querySelector('#color-picker');
+let customColorChanged=false;
+function rememberCustomColor(){
+  if(!customColorChanged)return;customColorChanged=false;recents=recentColors(recents,color);renderRecents();updateBrushUI();savePreferences();
+}
 function closePanels(){
-  sizePanel.hidden=palette.hidden=true;
+  rememberCustomColor();sizePanel.hidden=palette.hidden=colorPanel.hidden=true;
+  buttons['custom-color'].setAttribute('aria-expanded','false');
   buttons.size.setAttribute('aria-expanded','false');buttons.color.setAttribute('aria-expanded','false');
 }
 function togglePanel(panel,button){const open=panel.hidden;closePanels();panel.hidden=!open;button.setAttribute('aria-expanded',String(open));}
 buttons.size.onclick=()=>togglePanel(sizePanel,buttons.size);
-buttons.color.onclick=()=>{picker.setColor(color);togglePanel(palette,buttons.color);};
+buttons.color.onclick=()=>togglePanel(palette,buttons.color);
+buttons['custom-color'].onclick=()=>{picker.setColor(color);togglePanel(colorPanel,buttons['custom-color']);buttons.color.setAttribute('aria-expanded','true');document.querySelector('#color-field').focus();};
+buttons['color-back'].onclick=()=>{togglePanel(palette,buttons.color);buttons['custom-color'].focus();};
 function updateBrushUI(){
   buttons.size.querySelector('circle').setAttribute('r',[2,3.5,5.5,8][size]);
   buttons.size.dataset.size=size;
@@ -191,8 +198,22 @@ document.querySelectorAll('[data-width]').forEach(b=>b.onclick=()=>{
   size=Number(b.dataset.width);updateBrushUI();savePreferences();closePanels();
 });
 buttons.pressure.onclick=()=>{pressureEnabled=!pressureEnabled;updateBrushUI();savePreferences();};
+function renderRecents(){
+  const row=document.querySelector('#recents');row.replaceChildren();row.hidden=!recents.length;
+  for(const c of recents){
+    const b=document.createElement('button');b.className='swatch';b.dataset.color=c;
+    b.style.setProperty('--ink',c);b.setAttribute('aria-label',`Letzte Farbe ${c}`);
+    b.onclick=()=>chooseColor(c);row.append(b);
+  }
+}
+function chooseColor(value){
+  color=value;rainbow=false;recents=recentColors(recents,color);
+  renderRecents();updateBrushUI();savePreferences();select('pen');closePanels();
+}
+document.querySelectorAll('#presets [data-color]').forEach(b=>b.onclick=()=>chooseColor(b.dataset.color));
+renderRecents();
 const picker=setupColorPicker(color,value=>{
-  color=value;rainbow=false;updateBrushUI();savePreferences();select('pen');
+  color=value;rainbow=false;customColorChanged=true;updateBrushUI();savePreferences();select('pen');
 });
 buttons.rainbow.onclick=()=>{rainbow=!rainbow;select('pen');updateBrushUI();closePanels();};
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('nav'))closePanels();});
@@ -209,8 +230,8 @@ window.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey) && e.key==='z'){e.preventDefault();buttons.undo.click();}
 });
 window.addEventListener('resize',resize);
-document.addEventListener('visibilitychange',()=>{pointers.clear();lastTime=performance.now();if(document.hidden)save();});
-window.addEventListener('pagehide',save);
+document.addEventListener('visibilitychange',()=>{pointers.clear();lastTime=performance.now();if(document.hidden){rememberCustomColor();save();}});
+window.addEventListener('pagehide',()=>{rememberCustomColor();save();});
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;buttons.install.hidden=false;});
 buttons.install.onclick=async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;buttons.install.hidden=true;};
 window.addEventListener('appinstalled',()=>{buttons.install.hidden=true;});

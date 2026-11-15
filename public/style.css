@@ -37,7 +37,7 @@ svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 .panel{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);padding:12px;background:#171717;border:1px solid #383838;border-radius:24px;box-shadow:0 8px 30px #0008}
 .sizes{display:flex;align-items:center;gap:3px}
 .sizes button span{display:block;border-radius:50%;background:currentColor}
-.palette{width:min(310px,calc(100vw - 40px));padding:20px;background:#000;border-color:#333;border-radius:20px;box-shadow:0 16px 60px #000b}
+.color-picker{width:min(310px,calc(100vw - 40px));padding:20px;background:#000;border-color:#333;border-radius:20px;box-shadow:0 16px 60px #000b}
 .color-chip{width:23px;height:23px;border-radius:50%;background:var(--ink,#fff);border:1px solid #ffffff30}
 .rainbow .color-chip{background:conic-gradient(#ff5277,#ffe66d,#55e6c1,#71a7ff,#c478ff,#ff5277)}
 #color-field{height:clamp(100px,28dvh,220px);position:relative;touch-action:none;border-radius:8px;background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(var(--hue) 100% 50%));cursor:crosshair;outline:none}
@@ -57,3 +57,11 @@ svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 @media(orientation:landscape) and (max-height:600px){nav{left:auto;right:max(12px,env(safe-area-inset-right));bottom:50%;transform:translateY(50%);flex-direction:column}.divider{height:1px;width:19px;margin:3px 0}}
 @media(orientation:landscape) and (max-height:600px){.panel{left:auto;right:calc(100% + 12px);bottom:50%;transform:translateY(50%)}.sizes .divider{width:1px;height:19px;margin:0 3px}#install{right:calc(100% + 12px);bottom:0}}
 @media(orientation:landscape) and (max-height:380px){nav{gap:0;padding:3px}nav>.divider{margin:0;height:1px}nav>button{height:40px}}
+
+.palette{width:290px;background:#000;border-color:#333}
+.swatches{display:grid;grid-template-columns:repeat(6,44px)}
+.swatch::before{content:'';width:23px;height:23px;border-radius:50%;background:var(--ink,#fff);border:1px solid #ffffff30}
+.swatch[aria-pressed=true]{background:transparent;outline:1px solid #ddd;outline-offset:-4px}
+.recents{border-top:1px solid #333;padding-top:8px;margin-top:8px}
+.color-options{display:flex;justify-content:center;gap:8px;border-top:1px solid #333;margin-top:8px;padding-top:8px}
+#custom-color{background:#202020;color:#eee}
